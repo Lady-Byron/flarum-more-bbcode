@@ -107,13 +107,13 @@ export default class buttonBar extends Component<{
             m.redraw();
         } else if (tag.type === "button") {
             if (typeof tag.style !== "function")
-                styleSelectedText(this.attrs.textEditor, tag.style as any)
+                styleSelectedText(this.attrs.editor, tag.style as any)
             else {
                 const data = tag.style();
                 if (data instanceof Promise) {
-                    data.then(style => style && styleSelectedText(this.attrs.textEditor, style as any));
+                    data.then(style => style && styleSelectedText(this.attrs.editor, style as any));
                 } else {
-                    data && styleSelectedText(this.attrs.textEditor, data as any);
+                    data && styleSelectedText(this.attrs.editor, data as any);
                 }
             }
         }
