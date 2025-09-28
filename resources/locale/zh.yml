@@ -46,8 +46,8 @@ xypp-more-bbcode:
       bypass_reply_label: 忽略回复查看标签
       bypass_like_label: 忽略点赞查看标签
   forum:
-    name: 更多BBCode
-    collect: 收集的按钮
+    name: 更多功能
+    collect: 常用功能
     markdown: Markdown
     # Typography Part
     fonts:
