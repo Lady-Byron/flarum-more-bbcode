@@ -1,10 +1,3 @@
-/*
- * This file is part of Xypp/more-bbcode.
- *
- * For the full copyright and license information, please view the
- * file that was distributed with this source code.
- */
-
 import app from 'flarum/common/app';
 import { extend } from 'flarum/common/extend';
 import TextEditor from 'flarum/common/components/TextEditor';
@@ -23,7 +16,6 @@ import { autoClose, collectAll, collectMarkdown, removeMd } from './utils/prefer
 app.initializers.add('xypp/more-bbcode', () => {
   const tags = new TagCollector();
   const priority = prioritySerial(100, 100);
-
   addTypographyButtons(tags, priority);
   addUtilitiesTags(tags, priority);
   addEmbedTags(tags, priority);
@@ -45,7 +37,6 @@ app.initializers.add('xypp/more-bbcode', () => {
     const remove_markdown = removeMd();
     const collect_markdown = collectMarkdown();
 
-    // Add Collect Group
     if (collect_all || (collect_markdown !== 'none' && remove_markdown)) {
       if (!hasAddCollectBtn) {
         tags.group(0, 'collect', 'fas fa-box-open', 'xypp-more-bbcode.forum.collect', () => {});
@@ -70,7 +61,6 @@ app.initializers.add('xypp/more-bbcode', () => {
       });
     }
 
-    // Add Markdown Group
     if (remove_markdown && items.has('markdown')) {
       (tags.item('collect') as TagButtonGroup).tags.remove('markdown');
       if (collect_markdown === 'first') {
@@ -106,14 +96,15 @@ app.initializers.add('xypp/more-bbcode', () => {
       )
     );
 
-    // 👉 在 RTE shim 存在时，传 textarea 兼容层：composer.editor.el
-    if (showMoreBBcodeButtons && (this.attrs as any)?.composer?.editor?.el) {
+    // 关键：RTE 下依赖 editor.el（上面的兼容层）
+    const driver = (this.attrs as any)?.composer?.editor;
+    if (showMoreBBcodeButtons && driver?.el) {
       items.add(
         'xypp-more-bbcode-buttons',
         buttonBar.component({
           tagCollect: tags,
           className: 'main-entry',
-          textEditor: (this.attrs as any).composer.editor.el,
+          textEditor: driver.el, // 传 textarea 兼容层
           bottom: 57,
         }),
         -50000
@@ -130,4 +121,3 @@ app.initializers.add('xypp/more-bbcode', () => {
 
   regSetting();
 }, -50000);
-
