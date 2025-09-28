@@ -4,7 +4,6 @@ import Tooltip from "flarum/common/components/Tooltip";
 import TagCollector, { Tags } from "../helper/tagCollector";
 import { showIf } from "../utils/nodeUtil";
 import classList from "flarum/common/utils/classList";
-import styleSelectedText from "flarum/common/utils/styleSelectedText";
 import align from "../utils/hAlignUtil";
 import Mithril from "mithril";
 
@@ -19,6 +18,47 @@ export default class buttonBar extends Component<{
   bottom?: number;
 }> {
   selectedSub: string = "";
+
+  // —— 仅在本文件内的小工具：包裹/插入 —— //
+  private applyStyleInline = (style: any) => {
+    const ed: any = this.attrs.editor;
+    const prefix = style?.prefix ?? "";
+    const suffix = style?.suffix ?? "";
+
+    // 优先走 EditorDriver（RTE 与纯文本都实现了这套接口）
+    if (ed?.getSelectionRange && ed?.getValue && ed?.replaceSelection) {
+      const { start, end } = ed.getSelectionRange();
+      const value: string = ed.getValue();
+      const selected = value.slice(start, end);
+      const text = prefix + selected + suffix;
+
+      ed.replaceSelection(text);
+      ed.focus?.();
+
+      // 如果没有选中文本且存在 suffix，把光标移到两端标记中间
+      if (!selected && suffix) {
+        const pos = start + prefix.length;
+        ed.setSelectionRange?.(pos, pos);
+      }
+      return;
+    }
+
+    // 兜底：直接操作 textarea（纯文本旧环境）
+    const ta = document.querySelector<HTMLTextAreaElement>('.ComposerBody textarea');
+    if (ta) {
+      const s = ta.selectionStart ?? ta.value.length;
+      const e = ta.selectionEnd ?? ta.value.length;
+      const selected = ta.value.slice(s, e);
+      const text = prefix + selected + suffix;
+      ta.setRangeText(text, s, e, 'end');
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      ta.focus();
+      if (!selected && suffix) {
+        const pos = s + prefix.length;
+        ta.setSelectionRange(pos, pos);
+      }
+    }
+  };
 
   view() {
     const rows = this.attrs.rows || 1;
@@ -121,27 +161,15 @@ export default class buttonBar extends Component<{
     }
     if (tag.type !== "button") return;
 
-    // —— 兼容层：确保传给 styleSelectedText 的对象有 .el —— //
-    const compatEditor = (() => {
-      const ed: any = this.attrs.editor;
-      if (ed?.el) return ed; // 纯文本编辑器：el 就是 <textarea>
-      const el =
-        (document.querySelector('.ComposerBody .ProseMirror') as HTMLElement) ||
-        (document.querySelector('.RichTextEditor .ProseMirror') as HTMLElement) ||
-        null;
-      return el ? Object.assign({}, ed, { el }) : ed;
-    })();
-
     if (typeof tag.style !== "function") {
-      styleSelectedText(compatEditor, tag.style as any);
+      this.applyStyleInline(tag.style as any);
     } else {
       const data = tag.style();
       if (data instanceof Promise) {
-        data.then((style) => style && styleSelectedText(compatEditor, style as any));
+        data.then((style) => style && this.applyStyleInline(style as any));
       } else {
-        data && styleSelectedText(compatEditor, data as any);
+        data && this.applyStyleInline(data as any);
       }
     }
   }
 }
-
