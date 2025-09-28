@@ -97,7 +97,7 @@ app.initializers.add('xypp/more-bbcode', () => {
       items.add("xypp-more-bbcode-buttons", buttonBar.component({
         tagCollect: tags,
         className: "main-entry",
-        textEditor: (this.attrs as any).composer.editor,
+        editor: (this.attrs as any).composer.editor,
         bottom: 57
       }), -50000);
   });
