@@ -4,7 +4,7 @@ import Tooltip from "flarum/common/components/Tooltip";
 import TagCollector, { Tags } from "../helper/tagCollector";
 import { showIf } from "../utils/nodeUtil";
 import classList from "flarum/common/utils/classList";
-import applyStyle from "../utils/applyStyle";
+import styleSelectedText from "flarum/common/utils/styleSelectedText";
 import align from "../utils/hAlignUtil";
 import Mithril from "mithril";
 
@@ -20,7 +20,7 @@ export default class buttonBar extends Component<{
 }> {
   selectedSub: string = "";
 
-  view(vnode: any) {
+  view() {
     const rows = this.attrs.rows || 1;
     const tags = this.attrs.tagCollect.get();
     const groups = tags.filter((tag) => tag.type === "group");
@@ -84,7 +84,7 @@ export default class buttonBar extends Component<{
     } else if (typeof tag.icon === "string") {
       return (
         <Tooltip text={tag.tooltip} position="bottom">
-          <Button className={clsName} icon={tag.icon} onclick={this.clickEventWarper(tag)}></Button>
+          <Button className={clsName} icon={tag.icon} onclick={this.clickEventWarper(tag)} />
         </Tooltip>
       );
     } else if (typeof tag.icon === "function") {
@@ -117,17 +117,31 @@ export default class buttonBar extends Component<{
     if (tag.type === "group") {
       this.selectedSub = tag.name;
       m.redraw();
-    } else if (tag.type === "button") {
-      if (typeof tag.style !== "function") {
-        applyStyle(this.attrs.editor, tag.style as any);
+      return;
+    }
+    if (tag.type !== "button") return;
+
+    // —— 兼容层：确保传给 styleSelectedText 的对象有 .el —— //
+    const compatEditor = (() => {
+      const ed: any = this.attrs.editor;
+      if (ed?.el) return ed; // 纯文本编辑器：el 就是 <textarea>
+      const el =
+        (document.querySelector('.ComposerBody .ProseMirror') as HTMLElement) ||
+        (document.querySelector('.RichTextEditor .ProseMirror') as HTMLElement) ||
+        null;
+      return el ? Object.assign({}, ed, { el }) : ed;
+    })();
+
+    if (typeof tag.style !== "function") {
+      styleSelectedText(compatEditor, tag.style as any);
+    } else {
+      const data = tag.style();
+      if (data instanceof Promise) {
+        data.then((style) => style && styleSelectedText(compatEditor, style as any));
       } else {
-        const data = tag.style();
-        if (data instanceof Promise) {
-          data.then((style) => style && applyStyle(this.attrs.editor, style as any));
-        } else {
-          data && applyStyle(this.attrs.editor, data as any);
-        }
+        data && styleSelectedText(compatEditor, data as any);
       }
     }
   }
 }
+
