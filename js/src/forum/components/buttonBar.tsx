@@ -13,7 +13,7 @@ const heightPreRow = 36;
 
 export default class buttonBar extends Component<{
     tagCollect: TagCollector,
-    textEditor: HTMLTextAreaElement,
+    textEditor: any, // EditorDriver | HTMLTextAreaElement
     rows?: number,
     className?: string,
     bottom?: number
