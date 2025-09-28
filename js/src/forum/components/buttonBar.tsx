@@ -4,7 +4,7 @@ import Tooltip from "flarum/common/components/Tooltip";
 import TagCollector, { TagButton, TagButtonGroup, Tags, TagSpace } from "../helper/tagCollector";
 import { showIf } from "../utils/nodeUtil";
 import classList from "flarum/common/utils/classList"
-import styleSelectedText from "flarum/common/utils/styleSelectedText";
+import applyStyle from "flarum/common/utils/applyStyle";
 import align from "../utils/hAlignUtil";
 import Mithril from "mithril";
 
@@ -107,13 +107,13 @@ export default class buttonBar extends Component<{
             m.redraw();
         } else if (tag.type === "button") {
             if (typeof tag.style !== "function")
-                styleSelectedText(this.attrs.editor, tag.style as any)
+                applyStyle(this.attrs.editor, tag.style as any)
             else {
                 const data = tag.style();
                 if (data instanceof Promise) {
-                    data.then(style => style && styleSelectedText(this.attrs.editor, style as any));
+                    data.then(style => style && applyStyle(this.attrs.editor, style as any));
                 } else {
-                    data && styleSelectedText(this.attrs.editor, data as any);
+                    data && applyStyle(this.attrs.editor, data as any);
                 }
             }
         }
