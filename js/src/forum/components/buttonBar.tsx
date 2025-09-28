@@ -8,12 +8,11 @@ import styleSelectedText from "flarum/common/utils/styleSelectedText";
 import align from "../utils/hAlignUtil";
 import Mithril from "mithril";
 
-// 每行按钮高度（用于子按钮定位）
 const heightPreRow = 36;
 
 export default class buttonBar extends Component<{
   tagCollect: TagCollector;
-  editor: any;            // Flarum EditorDriver（RTE/纯文本均可）
+  textEditor: any; // HTMLTextAreaElement | RTE shim (editor.el)
   rows?: number;
   className?: string;
   bottom?: number;
@@ -31,7 +30,7 @@ export default class buttonBar extends Component<{
         {this.getTags(tags, rows)}
         {groups.map((group) =>
           buttonBar.component({
-            editor: this.attrs.editor,
+            textEditor: this.attrs.textEditor,
             tagCollect: group.tags,
             className: "SubButtons" + showIf(this.selectedSub === group.name, " show", ""),
             rows: group.rows,
@@ -55,7 +54,6 @@ export default class buttonBar extends Component<{
     const ret: (Mithril.ClassComponent | JSX.Element)[][] = [[]];
     const preRow = Math.floor((tags.length + rows - 1) / rows);
     let currentRow = 0;
-
     for (let i = 0; i < tags.length; i++) {
       ret[currentRow].push(this.getTagComponent(tags[i]));
       if ((i + 1) % preRow === 0) {
@@ -121,25 +119,14 @@ export default class buttonBar extends Component<{
     }
     if (tag.type !== "button") return;
 
-    // —— 兼容层：确保传给 styleSelectedText 的对象有 .el —— //
-    const compatEditor = (() => {
-      const ed: any = this.attrs.editor;
-      if (ed?.el) return ed; // 纯文本编辑器：el 就是 <textarea>
-      const el =
-        (document.querySelector('.ComposerBody .ProseMirror') as HTMLElement) ||
-        (document.querySelector('.RichTextEditor .ProseMirror') as HTMLElement) ||
-        null;
-      return el ? Object.assign({}, ed, { el }) : ed;
-    })();
-
     if (typeof tag.style !== "function") {
-      styleSelectedText(compatEditor, tag.style as any);
+      styleSelectedText(this.attrs.textEditor as any, tag.style as any);
     } else {
       const data = tag.style();
       if (data instanceof Promise) {
-        data.then((style) => style && styleSelectedText(compatEditor, style as any));
+        data.then((style) => style && styleSelectedText(this.attrs.textEditor as any, style as any));
       } else {
-        data && styleSelectedText(compatEditor, data as any);
+        data && styleSelectedText(this.attrs.textEditor as any, data as any);
       }
     }
   }
