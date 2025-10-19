@@ -39,7 +39,7 @@ app.initializers.add('xypp/more-bbcode', () => {
 
     if (collect_all || (collect_markdown !== 'none' && remove_markdown)) {
       if (!hasAddCollectBtn) {
-        tags.group(0, 'collect', 'fas fa-box-open', 'xypp-more-bbcode.forum.collect', () => {});
+        tags.group(0, 'collect', 'fa-duotone fa-solid fa-box-open', 'xypp-more-bbcode.forum.collect', () => {});
         hasAddCollectBtn = true;
       }
     } else if (hasAddCollectBtn) {
@@ -90,7 +90,7 @@ app.initializers.add('xypp/more-bbcode', () => {
             showMoreBBcodeButtons = !showMoreBBcodeButtons;
             m.redraw();
           },
-          icon: showIf(showMoreBBcodeButtons, 'fa fa-minus', 'fa fa-plus'),
+          icon: showIf(showMoreBBcodeButtons, 'fa-duotone fa-solid fa-minus', 'fa-duotone fa-solid fa-plus'),
         },
         app.translator.trans('xypp-more-bbcode.forum.name')
       )
